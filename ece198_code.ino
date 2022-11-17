@@ -1,52 +1,127 @@
 //declare pin variables
-int button = 23;
-int relay = 8;
-int seconds=0;
+short button = 23, ledIn=LED_BUILTIN, photo = A5, ledGreen=D2, ledBlue=D15, relay = D8, trig=D6, echo=D7 ;
 
 //function variables
-boolean relayState=0;
+boolean relayState=0, relayLock=0;
+double seconds;
+short ultra1, ultra2;
+int luminanceR;
 
 //declare functions
-void toggleRelay();
+void setRelay(bool state);
+void toggleLedBlue();
+void toggleLedGreen();
+int getProximity();
+short getPhoto();
+
 
 void setup() {
-  //start the serial monitor
+  //start the serial monitor with baud rate of 115200
   Serial.begin(9600);
   
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(button,INPUT);
+  // initialize all the pins with respective I/O type
+  pinMode(button, INPUT);
+  pinMode(ledIn, OUTPUT);
+  pinMode(photo, INPUT);
+  pinMode(ledGreen, OUTPUT);
+  pinMode(ledBlue, OUTPUT);
+  pinMode(relay, INPUT);
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
+  
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(500);                       // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(500);                       // wait for a second
-
-  Serial.print("Button State: ");
+  
+  /*Serial.print("Button State: ");
   Serial.print(digitalRead(button));
-  Serial.println();
+  Serial.println(); */
+  
+  //toggle the relay with the button and lock the relay for 15 minutes
+  
 
-  //toggle the relay with the button
-  if (!digitalRead(button)) {
-    toggleRelay();
+  //check time to disable relaylock and turn off light
+  if (seconds>45) {
+    relayLock=false;
+    setRelay(false);
+    
   }
   
-  Serial.print("Relay State & Toggle: ");
+  
+ /* Serial.print("Relay State & Toggle: ");
   toggleRelay();
   Serial.print(relayState);
+  Serial.println();*/
+
+  
+  ultra1 = getProximity(); //saves first distance in cm
+  delay(350); //delay loop by 250ms and print seconds value
+  Serial.print("Seconds elapsed: ");
+  Serial.print(seconds);
   Serial.println();
+  ultra2 = getProximity(); //saves 2nd dsiatnce in cm
+  seconds += .5;
+  
+  //turnon blue led for motion detection
+  ultra2 -= ultra1;
+  Serial.println(ultra2);
+  if (ultra2 > 10 || ultra2 < -10) {
+    toggleLedBlue();
+
+    if (!relayLock) {
+      setRelay(true);
+      seconds=0;
+    }
+  }
+
+  //print out luminance in lux
+  luminanceR = getPhoto()*20;
+  Serial.print("Luminance level (lux): ");
+     Serial.print(analogRead(photo));
+     Serial.println();
+       
+  //turnon greenled for light detection DARK
+  if (getPhoto()<20) { 
+   toggleLedGreen();
+  }
+  
+  
 }
 
 
-
-void toggleRelay() {
-  if (relayState==0) {
+//sets the relay
+void setRelay(bool state) {
+  if (state) {
    pinMode(relay,OUTPUT);
    relayState=1;
   } else {
     pinMode(relay,INPUT);
     relayState=0;
   }
+}
+
+//toggles the blue led
+void toggleLedBlue() {
+  if (digitalRead(ledBlue)==HIGH) {
+    digitalWrite(ledBlue, LOW);
+  } else {
+    digitalWrite(ledBlue, HIGH);
+  }
+}
+
+//toggles the green led
+void toggleLedGreen() {
+  if (digitalRead(ledGreen)==HIGH) {
+    digitalWrite(ledGreen, LOW);
+  } else {
+    digitalWrite(ledGreen, HIGH);
+  }
+}
+
+short getPhoto() {
+  return analogRead(photo);
+}
+
+int getProximity() {
+  
 }
