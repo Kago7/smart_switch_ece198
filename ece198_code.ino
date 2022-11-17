@@ -41,7 +41,7 @@ void loop() {
   
 
   //check time to disable relaylock and turn off light
-  if (seconds>45) {
+  if (seconds>30) {
     relayLock=false;
     setRelay(false);
     
