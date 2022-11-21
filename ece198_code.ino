@@ -1,5 +1,5 @@
 //declare pin variables
-short button = 23, ledIn=LED_BUILTIN, photo = A5, ledGreen=D2, ledBlue=D15, relay = D8, trig=D6, echo=D7 ;
+short button = 23, ledIn=LED_BUILTIN, photo = A5, ledGreen=D2, ledBlue=D3, relay = D8, trig=D6, echo=D7 ;
 
 //function variables
 boolean relayState=0, relayLock=0;
@@ -25,7 +25,7 @@ void setup() {
   pinMode(photo, INPUT);
   pinMode(ledGreen, OUTPUT);
   pinMode(ledBlue, OUTPUT);
-  pinMode(relay, INPUT);
+  pinMode(relay, OUTPUT);
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   
@@ -82,7 +82,9 @@ void loop() {
        
   //turnon greenled for light detection DARK
   if (getPhoto()<20) { 
-   toggleLedGreen();
+   digitalWrite(ledGreen,LOW);
+  } else {
+    digitalWrite(ledGreen,HIGH);
   }
   
   
@@ -92,10 +94,10 @@ void loop() {
 //sets the relay
 void setRelay(bool state) {
   if (state) {
-   pinMode(relay,OUTPUT);
+   pinMode(relay,INPUT);
    relayState=1;
   } else {
-    pinMode(relay,INPUT);
+    pinMode(relay,OUTPUT);
     relayState=0;
   }
 }
